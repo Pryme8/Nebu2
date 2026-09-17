@@ -137,6 +137,31 @@ await scenario('Menu hover behaviour', async () => {
   check('hovering does not open a menu on its own', opened === false)
 })
 
+await scenario('Dialogs load on demand', async () => {
+  // These are defineAsyncComponent now, so a broken dynamic import would show
+  // up as a dialog that simply never appears.
+  errors.length = 0
+
+  await openMenu('Edit')
+  await menuItem('Project Settings…')
+  await pause(1200)
+  check('Project Settings dialog opens', (await text()).includes('Active Plugins')
+        || (await text()).includes('Compatibility'))
+  await click('button', 'Cancel')
+  await pause(600)
+
+  await openMenu('Build')
+  await menuItem('Export Project…')
+  await pause(1400)
+  check('Export dialog opens', (await text()).includes("What's Included")
+        || (await text()).includes('Export ZIP'))
+  await click('button', 'Cancel')
+  await pause(600)
+
+  check('async dialogs raise no runtime errors', errors.length === 0,
+        errors.slice(0, 2).join(' | '))
+})
+
 await scenario('Play mode', async () => {
   errors.length = 0
   // Play stays disabled until the scene has a Camera component.

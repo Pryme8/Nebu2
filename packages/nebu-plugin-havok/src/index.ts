@@ -14,7 +14,6 @@
 //   pluginStore.registerPlugin(havokPlugin)
 // ─────────────────────────────────────────────
 
-import HavokPhysics        from '@babylonjs/havok'
 import type { NebuPlugin } from '@/types/plugin'
 
 import { PhysicsWorldComponent }                        from './components/PhysicsWorldComponent'
@@ -148,6 +147,11 @@ declare class PhysicsConstraintComponent extends Component {
     // fetches from /HavokPhysics.wasm (served by havokWasm() Vite plugin)
     // with the correct application/wasm MIME type instead of guessing a path
     // that resolves to an HTML 404 page and fails the magic-byte check.
+    // Imported here rather than at module scope: this plugin is *registered*
+    // at app boot so it can appear in Project Settings, but most projects never
+    // activate it. A static import would pull the Havok emscripten glue into
+    // the main bundle for everyone.
+    const { default: HavokPhysics } = await import('@babylonjs/havok')
     const havokInstance = await HavokPhysics({ locateFile: () => '/HavokPhysics.wasm' })
 
     // Create the physics system and register it with the world.

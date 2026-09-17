@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, nextTick, onUnmounted, watch } from 'vue'
+import { onMounted, nextTick, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { usePanelStore }    from '@/stores/panelStore'
 import { useLayerStore }    from '@/stores/layerStore'
 import { useSceneStore }    from '@/stores/sceneStore'
@@ -55,10 +55,15 @@ import AppStatusBar      from '@/components/base/AppStatusBar.vue'
 import ScriptEditorPanel  from '@/components/editor/ScriptEditorPanel.vue'
 import ViewportPanel      from '@/components/editor/ViewportPanel.vue'
 import AnimationPanel     from '@/components/editor/AnimationPanel.vue'
-import ScriptEditorDialog  from '@/components/editor/ScriptEditorDialog.vue'
-import ProjectSettingsDialog  from '@/components/editor/ProjectSettingsDialog.vue'
-import ViewportSettingsDialog from '@/components/editor/ViewportSettingsDialog.vue'
-import ExportDialog           from '@/components/editor/ExportDialog.vue'
+// Dialogs are loaded on demand. Each is already v-if'd on a store flag, so it
+// only renders when opened — and ScriptEditorDialog pulls in Monaco, which is
+// by far the heaviest dependency in the app. Importing it statically put the
+// whole editor (~10 MB) in the initial page load even for users who never open
+// a script.
+const ScriptEditorDialog      = defineAsyncComponent(() => import('@/components/editor/ScriptEditorDialog.vue'))
+const ProjectSettingsDialog   = defineAsyncComponent(() => import('@/components/editor/ProjectSettingsDialog.vue'))
+const ViewportSettingsDialog  = defineAsyncComponent(() => import('@/components/editor/ViewportSettingsDialog.vue'))
+const ExportDialog            = defineAsyncComponent(() => import('@/components/editor/ExportDialog.vue'))
 
 const componentRegistry: Record<string, unknown> = {
   HierarchyPanel,

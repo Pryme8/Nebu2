@@ -24,7 +24,7 @@ is an in-progress personal project, not a released tool. Before relying on it, r
 |---|---|
 | Runtime | Works — `npm run dev` and `npm run build` both succeed |
 | Strict typecheck | Clean — `vue-tsc -b` reports 0 errors |
-| Test suite | None |
+| Test suite | 39 unit checks (Vitest) + 24 end-to-end checks against a real browser |
 | Successor to | [Pryme8/NeBu](https://github.com/Pryme8/NeBu) |
 
 ---
@@ -47,6 +47,13 @@ npm run dev
 ```
 
 Then open <http://localhost:5173>.
+
+```bash
+npm test
+```
+
+Unit tests. For the end-to-end suite, leave `npm run dev` running and use `npm run test:e2e` —
+see [tests/README.md](tests/README.md).
 
 To create a project: **File → New Project…**, pick an empty folder, and grant read/write access. Nebu2
 writes a `.nebu` marker file plus `scenes/`, `assets/`, and `scripts/` folders into it.
@@ -84,6 +91,7 @@ writes a `.nebu` marker file plus `scenes/`, `assets/`, and `scripts/` folders i
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | ECS, stores, layer stack, command pattern, project file format |
 | [docs/SCRIPTING.md](docs/SCRIPTING.md) | `NebuScript` lifecycle, exposed properties, the compile pipeline |
 | [packages/nebu-plugin-havok/PLUGIN_GUIDE.md](packages/nebu-plugin-havok/PLUGIN_GUIDE.md) | Writing a plugin, using the Havok plugin as reference |
+| [tests/README.md](tests/README.md) | How the unit and end-to-end suites work |
 | [ANIMATION_PLAN.md](ANIMATION_PLAN.md) | Design document for the animation system |
 | [.github/copilot-instructions.md](.github/copilot-instructions.md) | Coding conventions enforced across the codebase |
 
@@ -128,15 +136,20 @@ docs/           Documentation and screenshots
 
 ## Known issues
 
-1. **Bundle size.** The main chunk is ~8 MB (1.8 MB gzipped) and Monaco adds ~11 MB (2.2 MB gzipped).
-   Monaco is already split into a lazy chunk; Babylon is not yet trimmed.
+1. **Babylon is ~6.6 MB of the initial load.** Vendor code is now split into cacheable chunks and
+   Monaco no longer loads until you open a script, which cut first-load JS from ~18.6 MB to
+   ~7.7 MB. What remains is dominated by `@babylonjs/core`, which the viewport needs immediately.
+   Shrinking it further means deep per-module Babylon imports, which conflicts with the lazy shader
+   loading that `optimizeDeps.exclude` exists to protect — see the comments in
+   [`vite.config.ts`](vite.config.ts).
 
 2. **Export gaps.** The exported runtime reconstructs scene data, procedural meshes, lights and
    shadows, cameras, Standard/PBR materials with textures, the full script lifecycle and Havok
    physics. It does **not** yet rebuild imported GLB/GLTF mesh assets, or Shader / Custom /
    PBRCustom materials. The export dialog now lists these explicitly.
 
-3. **No automated tests.** Changes are currently verified by driving the running editor.
+3. **Coverage is shallow.** The suites cover the paths that have actually broken, not the codebase
+   as a whole — notably the asset import pipeline, materials and prefabs have no tests yet.
 
 4. **Scene switching depends on the Files panel.** `projectStore.openSceneFromMeta` is only reachable
    from `FileBrowserItem` (double-click, or right-click → Open Scene). `ProjectPanel.vue` looks like
@@ -154,6 +167,8 @@ docs/           Documentation and screenshots
 - Spreading a Babylon `Vector3` silently produced coordinate-less objects in the gizmo undo and
   prefab-apply snapshots.
 - Menu bar items re-opened on hover after any menu had been used once.
+- Monaco (~10.8 MB) was documented as lazily loaded but was pulled into the initial page load by a
+  static import chain from `App.vue`; the dialogs are async components now.
 
 ## License
 
