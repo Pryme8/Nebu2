@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg-base:       #1a1a1e;
+    --color-bg-surface:    #232329;
+    --color-bg-elevated:   #2c2c35;
+    --color-bg-overlay:    #35353f;
+    --color-border:        #3f3f4a;
+    --color-border-focus:  #6366f1;
+    --color-text-primary:  #e2e2e8;
+    --color-text-secondary:#9d9daa;
+    --color-text-muted:    #5c5c6b;
+    --color-accent:        #6366f1;
+    --color-accent-hover:  #818cf8;
+    --color-accent-active: #4f46e5;
+    --color-danger:        #ef4444;
+    --color-warning:       #f59e0b;
+    --color-success:       #22c55e;
+    --panel-header-height: 2rem;
+    --tab-height: 1.75rem;
+    --resize-handle-size:  4px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body, #app {
+    width: 100%; height: 100%; overflow: hidden;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    font-size: 13px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-bg-surface); }
+  ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+  ::selection { background: var(--color-accent); color: white; }
+  :focus-visible { outline: 2px solid var(--color-border-focus); outline-offset: 2px; }
+}
+
+@layer utilities {
+  .panel-surface  { background-color: var(--color-bg-surface); }
+  .panel-elevated { background-color: var(--color-bg-elevated); }
+  .panel-overlay  { background-color: var(--color-bg-overlay); }
+  .border-panel   { border-color: var(--color-border); }
+  .text-primary   { color: var(--color-text-primary); }
+  .text-secondary { color: var(--color-text-secondary); }
+  .text-muted     { color: var(--color-text-muted); }
+  .text-accent    { color: var(--color-accent); }
+  .no-select      { user-select: none; }
+}

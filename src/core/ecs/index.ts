@@ -1,0 +1,13 @@
+// Barrel export for the ECS core
+export { Component }                           from './Component'
+export { Entity }                              from './Entity'
+export { System }                              from './System'
+export { World }                               from './World'
+export type { SerializedWorld, SerializedEntity, SerializedComponent } from './World'
+export { TransformComponent }                  from './components/TransformComponent'
+export type { Vec3 }                           from './components/TransformComponent'
+export { NameComponent }                       from './components/NameComponent'
+export { TagComponent }                        from './components/TagComponent'
+export { ActiveComponent }                     from './components/ActiveComponent'
+export { defaultComponentRegistry }            from './componentRegistry'
+export type { ComponentFactory }               from './componentRegistry'
