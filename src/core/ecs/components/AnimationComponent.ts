@@ -139,6 +139,11 @@ export class AnimationComponent extends Component {
 
       for (const track of clip.tracks) {
         if (track.muted) continue
+        // A track with no keyframes yet (freshly added from the timeline's
+        // "Add Track" menu) has nothing to drive.  Babylon's
+        // AnimationGroup.normalize() dereferences keys[0] unconditionally, so
+        // handing it a key-less Animation throws and aborts the whole sync.
+        if (track.keyframes.length === 0) continue
 
         const anim = new BabylonAnimation(
           `${clip.id}__${track.id}`,
@@ -155,6 +160,13 @@ export class AnimationComponent extends Component {
         if (eFn) anim.setEasingFunction(eFn)
 
         group.addTargetedAnimation(anim, node)
+      }
+
+      // Every track was muted or still empty — keep no group for this clip.
+      if (group.targetedAnimations.length === 0) {
+        group.dispose(false)
+        this.babylonGroups.delete(clip.id)
+        continue
       }
 
       group.normalize(0, clip.frameCount)

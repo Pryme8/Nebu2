@@ -40,6 +40,7 @@ import { useCommandStore }  from '@/stores/commandStore'
 import { useEditorStore }   from '@/stores/editorStore'
 import { usePluginStore }   from '@/stores/pluginStore'
 import { havokPlugin }      from '@nebu/plugin-havok'
+import { isTextEntryTarget } from '@/lib/domFocus'
 
 import AppMenuBar       from '@/components/editor/AppMenuBar.vue'
 import EditorToolbar    from '@/components/editor/EditorToolbar.vue'
@@ -102,8 +103,7 @@ function _onKeyDown(e: KeyboardEvent): void {
   if (!ctrl) return
 
   // Don't intercept shortcuts while the user is typing in an input
-  const tag = (e.target as HTMLElement).tagName
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable) return
+  if (isTextEntryTarget(e.target)) return
 
   if (e.key === 'z' && !e.shiftKey) {
     e.preventDefault()

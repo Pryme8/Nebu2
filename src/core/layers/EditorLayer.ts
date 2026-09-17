@@ -12,6 +12,7 @@ import {
 } from './events'
 import { EventType, type ModifierKeys } from '@/types/layer'
 import { useEditorStore } from '@/stores/editorStore'
+import { isTextEntryTarget } from '@/lib/domFocus'
 
 /**
  * EditorLayer — the primary layer of the Nebu2 editor.
@@ -62,8 +63,10 @@ export class EditorLayer extends ILayer {
     // EditorLayer handles tool shortcuts and other editor-wide key bindings.
     if (event.type === EventType.KeyDown) {
       const { key, modifiers } = event as KeyDownEvent
-      // Only act when no modifier keys are held (prevents browser-shortcut conflicts).
-      if (!modifiers.ctrl && !modifiers.alt) {
+      // Only act when no modifier keys are held (prevents browser-shortcut conflicts)
+      // and the user isn't typing — these are bare single-letter shortcuts, so
+      // without the focus check "w" in a rename field would switch tools.
+      if (!modifiers.ctrl && !modifiers.alt && !isTextEntryTarget()) {
         this._handleToolShortcut(key)
       }
     }
