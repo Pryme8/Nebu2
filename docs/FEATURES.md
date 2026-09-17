@@ -432,8 +432,10 @@ Either way the page carries a `window.__NEBU_MANIFEST` describing what to load. 
 transpiled with Sucrase through the same pipeline the editor uses, so the same import rewriting
 applies.
 
-The dialog's **What's Included** section reports exactly what will be bundled, including the
-caveat that materials and scripts are applied at runtime in "V2".
+The dialog's **What's Included** section reports exactly what the runtime reconstructs. Supported
+today: scene data, procedural meshes, lights and shadows, cameras, Standard/PBR materials with
+textures, the full NebuScript lifecycle, and Havok physics. Not yet supported: imported GLB/GLTF
+mesh assets, and Shader / Custom / PBRCustom materials.
 
 ---
 

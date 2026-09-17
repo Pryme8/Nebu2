@@ -131,8 +131,10 @@ docs/           Documentation and screenshots
 1. **Bundle size.** The main chunk is ~8 MB (1.8 MB gzipped) and Monaco adds ~11 MB (2.2 MB gzipped).
    Monaco is already split into a lazy chunk; Babylon is not yet trimmed.
 
-2. **Export caveat.** The export dialog notes that materials and scripts are applied at runtime in
-   "V2" — verify exported bundles before shipping them.
+2. **Export gaps.** The exported runtime reconstructs scene data, procedural meshes, lights and
+   shadows, cameras, Standard/PBR materials with textures, the full script lifecycle and Havok
+   physics. It does **not** yet rebuild imported GLB/GLTF mesh assets, or Shader / Custom /
+   PBRCustom materials. The export dialog now lists these explicitly.
 
 3. **No automated tests.** Changes are currently verified by driving the running editor.
 

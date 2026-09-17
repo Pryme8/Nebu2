@@ -206,5 +206,5 @@ Open scripts from the Files panel, either in the docked Script Editor panel or a
 what runs in the editor is what ships. In self-contained mode the transpiled JS is embedded as a
 string in the manifest; in file-based mode it is written to `scripts/*.js` and fetched at runtime.
 
-> The export dialog flags that materials and scripts are applied at runtime in "V2" — verify an
-> exported bundle before relying on it.
+> The exported runtime implements the full NebuScript lifecycle. See the export dialog's
+> **What's Included** list for the features it does not reconstruct yet.
