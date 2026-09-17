@@ -141,9 +141,9 @@ function onKeyframeMove(frame: number, pxDelta: number): void {
   // Move all selected keyframes by delta, or just this one if not selected
   const isSelected = animStore.isKeyframeSelected(props.track.id, frame)
   const keysToMove: Array<{ trackId: string; frame: number }> = isSelected
-    ? [...animStore.selectedKeyframes].map(k => {
+    ? [...animStore.selectedKeyframes].flatMap(k => {
         const [tid, f] = k.split(':')
-        return { trackId: tid, frame: Number(f) }
+        return tid ? [{ trackId: tid, frame: Number(f) }] : []
       })
     : [{ trackId: props.track.id, frame }]
 

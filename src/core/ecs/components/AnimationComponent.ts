@@ -125,7 +125,7 @@ export class AnimationComponent extends Component {
 
       // Rebuild the group for this clip
       const old = this.babylonGroups.get(clip.id)
-      if (old) { old.stop(); old.dispose(false) }
+      if (old) { old.stop(); old.dispose() }
 
       if (clip.tracks.length === 0) {
         this.babylonGroups.delete(clip.id)
@@ -164,7 +164,7 @@ export class AnimationComponent extends Component {
 
       // Every track was muted or still empty — keep no group for this clip.
       if (group.targetedAnimations.length === 0) {
-        group.dispose(false)
+        group.dispose()
         this.babylonGroups.delete(clip.id)
         continue
       }
@@ -176,7 +176,7 @@ export class AnimationComponent extends Component {
     // Dispose groups for clips that were removed
     for (const removedId of existingIds) {
       const g = this.babylonGroups.get(removedId)
-      if (g) { g.stop(); g.dispose(false) }
+      if (g) { g.stop(); g.dispose() }
       this.babylonGroups.delete(removedId)
     }
   }
@@ -184,7 +184,7 @@ export class AnimationComponent extends Component {
   override onDispose(): void {
     for (const group of this.babylonGroups.values()) {
       group.stop()
-      group.dispose(false)
+      group.dispose()
     }
     this.babylonGroups.clear()
     this._scene = null

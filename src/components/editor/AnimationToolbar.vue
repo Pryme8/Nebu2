@@ -215,8 +215,7 @@ function toggleTrackMenu(): void {
 const groupedProps = computed(() => {
   const map: Record<string, AnimatablePropDescriptor[]> = {}
   for (const p of ANIMATABLE_PROPS) {
-    if (!map[p.category]) map[p.category] = []
-    map[p.category].push(p)
+    ;(map[p.category] ??= []).push(p)
   }
   return map
 })

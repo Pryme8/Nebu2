@@ -50,6 +50,7 @@ const search     = ref('')
 
 const assetIconMap: Record<AssetType, string> = {
   mesh:     'mesh',
+  model:    'model',
   texture:  'texture',
   audio:    'placeholder',
   material: 'placeholder',

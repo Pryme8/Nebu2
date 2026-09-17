@@ -53,21 +53,21 @@
           </template>
           <!-- Vector2 -->
           <template v-else-if="selectedKfTrack?.valueType === 'Vector2'">
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[0]" label="X" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(0, v ?? 0)" />
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[1]" label="Y" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(1, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[0] ?? null" label="X" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(0, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[1] ?? null" label="Y" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(1, v ?? 0)" />
           </template>
           <!-- Vector3 / Color3 -->
           <template v-else-if="selectedKfTrack?.valueType === 'Vector3' || selectedKfTrack?.valueType === 'Color3'">
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[0]" :label="selectedKfTrack.valueType === 'Color3' ? 'R' : 'X'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(0, v ?? 0)" />
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[1]" :label="selectedKfTrack.valueType === 'Color3' ? 'G' : 'Y'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(1, v ?? 0)" />
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[2]" :label="selectedKfTrack.valueType === 'Color3' ? 'B' : 'Z'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(2, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[0] ?? null" :label="selectedKfTrack.valueType === 'Color3' ? 'R' : 'X'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(0, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[1] ?? null" :label="selectedKfTrack.valueType === 'Color3' ? 'G' : 'Y'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(1, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[2] ?? null" :label="selectedKfTrack.valueType === 'Color3' ? 'B' : 'Z'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(2, v ?? 0)" />
           </template>
           <!-- Quaternion / Color4 -->
           <template v-else-if="selectedKfTrack?.valueType === 'Quaternion' || selectedKfTrack?.valueType === 'Color4'">
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[0]" :label="selectedKfTrack.valueType === 'Color4' ? 'R' : 'X'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(0, v ?? 0)" />
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[1]" :label="selectedKfTrack.valueType === 'Color4' ? 'G' : 'Y'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(1, v ?? 0)" />
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[2]" :label="selectedKfTrack.valueType === 'Color4' ? 'B' : 'Z'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(2, v ?? 0)" />
-            <BaseNumericInput :modelValue="(selectedKf.value as number[])[3]" :label="selectedKfTrack.valueType === 'Color4' ? 'A' : 'W'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(3, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[0] ?? null" :label="selectedKfTrack.valueType === 'Color4' ? 'R' : 'X'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(0, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[1] ?? null" :label="selectedKfTrack.valueType === 'Color4' ? 'G' : 'Y'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(1, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[2] ?? null" :label="selectedKfTrack.valueType === 'Color4' ? 'B' : 'Z'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(2, v ?? 0)" />
+            <BaseNumericInput :modelValue="(selectedKf.value as number[])[3] ?? null" :label="selectedKfTrack.valueType === 'Color4' ? 'A' : 'W'" :step="0.01" class="flex-1" @update:modelValue="v => setKfComponent(3, v ?? 0)" />
           </template>
         </div>
       </div>
@@ -107,6 +107,7 @@ const selectedTrackEasing = computed<EasingDef | null>(() => {
 const selectedKf = computed<KeyframeDef | null>(() => {
   if (animStore.selectedKeyframes.size !== 1) return null
   const [key] = [...animStore.selectedKeyframes]
+  if (!key) return null
   const [trackId, frameStr] = key.split(':')
   const frame = Number(frameStr)
   const clip = animStore.activeClip
@@ -117,6 +118,7 @@ const selectedKf = computed<KeyframeDef | null>(() => {
 const selectedKfTrack = computed<AnimationTrackDef | null>(() => {
   if (animStore.selectedKeyframes.size !== 1) return null
   const [key] = [...animStore.selectedKeyframes]
+  if (!key) return null
   const [trackId] = key.split(':')
   return animStore.activeClip?.tracks.find(t => t.id === trackId) ?? null
 })

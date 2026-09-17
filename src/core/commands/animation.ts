@@ -145,7 +145,7 @@ export class SetClipPropertyCommand implements ICommand {
     const clip = comp?.getClip(this._clipId)
     if (!clip) return
     this._oldVal = clip[this._key]
-    ;(clip as Record<string, unknown>)[this._key as string] = this._newVal
+    ;(clip as unknown as Record<string, unknown>)[this._key as string] = this._newVal
     syncAndNotify(comp!)
   }
 
@@ -153,7 +153,7 @@ export class SetClipPropertyCommand implements ICommand {
     const comp = getAnimComp(this._entityId)
     const clip = comp?.getClip(this._clipId)
     if (!clip) return
-    ;(clip as Record<string, unknown>)[this._key as string] = this._oldVal
+    ;(clip as unknown as Record<string, unknown>)[this._key as string] = this._oldVal
     syncAndNotify(comp!)
   }
 }
@@ -255,11 +255,12 @@ export class InsertKeyframeCommand implements ICommand {
   private _clipId:   string
   private _trackId:  string
   private _frame:    number
-  private _value:    number | number[]
+  /** `null` means "use the track value type's default" — resolved in execute(). */
+  private _value:    number | number[] | null
   private _prevKf:   KeyframeDef | null = null
   private _wasInsert = false
 
-  constructor(entityId: string, clipId: string, trackId: string, frame: number, value: number | number[]) {
+  constructor(entityId: string, clipId: string, trackId: string, frame: number, value: number | number[] | null) {
     this._entityId = entityId
     this._clipId   = clipId
     this._trackId  = trackId
@@ -273,15 +274,18 @@ export class InsertKeyframeCommand implements ICommand {
     const track = clip?.tracks.find(t => t.id === this._trackId)
     if (!track) return
 
+    // Callers that just want "a key here" pass null rather than inventing a value.
+    const value = this._value ?? defaultKeyframeValue(track.valueType)
+
     const existing = track.keyframes.find(k => k.frame === this._frame)
     if (existing) {
       this._prevKf   = { ...existing }
       this._wasInsert = false
-      existing.value = this._value
+      existing.value = value
     } else {
       this._wasInsert = true
       this._prevKf    = null
-      const kf: KeyframeDef = { frame: this._frame, value: this._value }
+      const kf: KeyframeDef = { frame: this._frame, value }
       track.keyframes.push(kf)
       track.keyframes.sort((a, b) => a.frame - b.frame)
     }
@@ -334,8 +338,9 @@ export class DeleteKeyframesCommand implements ICommand {
       const track = clip.tracks.find(t => t.id === trackId)
       if (!track) continue
       const idx = track.keyframes.findIndex(k => k.frame === frame)
-      if (idx === -1) continue
-      this._snapshots.push({ trackId, kf: { ...track.keyframes[idx] }, idx })
+      const kf  = idx === -1 ? undefined : track.keyframes[idx]
+      if (!kf) continue
+      this._snapshots.push({ trackId, kf: { ...kf }, idx })
       track.keyframes.splice(idx, 1)
     }
 

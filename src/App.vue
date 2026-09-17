@@ -34,7 +34,6 @@
 import { onMounted, nextTick, onUnmounted, watch } from 'vue'
 import { usePanelStore }    from '@/stores/panelStore'
 import { useLayerStore }    from '@/stores/layerStore'
-import { useProjectStore }  from '@/stores/projectStore'
 import { useSceneStore }    from '@/stores/sceneStore'
 import { useCommandStore }  from '@/stores/commandStore'
 import { useEditorStore }   from '@/stores/editorStore'
@@ -73,7 +72,6 @@ const componentRegistry: Record<string, unknown> = {
 }
 
 const panelStore   = usePanelStore()
-const projectStore = useProjectStore()
 const sceneStore   = useSceneStore()
 const commandStore = useCommandStore()
 const editorStore  = useEditorStore()

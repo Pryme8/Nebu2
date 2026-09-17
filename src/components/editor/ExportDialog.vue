@@ -233,7 +233,7 @@
             Cancel
           </BaseButton>
           <BaseButton
-            variant="primary"
+            variant="solid"
             size="sm"
             :disabled="exportStore.isExporting || form.selectedScenes.length === 0"
             @click="doExport"

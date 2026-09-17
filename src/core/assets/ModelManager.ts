@@ -105,10 +105,14 @@ export class ModelManager {
 
     // Identify the primary mesh — skip the __root__ helper Babylon adds for
     // glTF files and prefer the first mesh that actually has geometry.
-    const primaryMesh: AbstractMesh =
+    const primaryMesh: AbstractMesh | undefined =
       container.meshes.find(m => m.name !== '__root__' && m.getTotalVertices() > 0)
       ?? container.meshes.find(m => m.name !== '__root__')
       ?? container.meshes[0]
+    if (!primaryMesh) {
+      container.dispose()
+      throw new Error(`Model asset ${guid} contains no meshes`)
+    }
 
     if (!primaryMesh) {
       container.dispose()

@@ -5,6 +5,18 @@ import { Quaternion, Vector3, type TransformNode } from '@babylonjs/core'
 export interface Vec3 { x: number; y: number; z: number }
 
 /**
+ * Snapshot a Babylon Vector3 as a plain, serializable Vec3.
+ *
+ * Use this instead of spreading — `{ ...someVector3 }` copies Babylon's private
+ * `_x` / `_y` / `_z` / `_isDirty` fields, because `x` / `y` / `z` are prototype
+ * accessors and therefore not own enumerable properties.  The result looks
+ * plausible but has no usable coordinates.
+ */
+export function toVec3(v: Vector3): Vec3 {
+  return { x: v.x, y: v.y, z: v.z }
+}
+
+/**
  * Transform component — position / rotation (Euler radians) / scale.
  *
  * `position`, `rotation`, and `scale` are live proxy objects.  Once
@@ -39,10 +51,10 @@ export class TransformComponent extends Component {
   //   transform.position.x = 1          (direct mutation — always worked)
   //   transform.position = new Vector3  (assignment — now works via copyFrom)
   public get position(): Vector3         { return this._node ? this._node.position  : this._pos }
-  public set position(v: Vector3)        { this.position.copyFrom(v) }
+  public set position(v: Vec3)           { this.position.copyFromFloats(v.x, v.y, v.z) }
 
   public get rotation(): Vector3         { return this._node ? this._node.rotation  : this._rot }
-  public set rotation(v: Vector3)        { this.rotation.copyFrom(v) }
+  public set rotation(v: Vec3)           { this.rotation.copyFromFloats(v.x, v.y, v.z) }
 
   public get rotationQuaternion(): Quaternion | null {
     return this._node ? this._node.rotationQuaternion : null
@@ -57,7 +69,7 @@ export class TransformComponent extends Component {
     }
   }
   public get scale(): Vector3            { return this._node ? this._node.scaling   : this._scl }
-  public set scale(v: Vector3)           { this.scale.copyFrom(v) }
+  public set scale(v: Vec3)              { this.scale.copyFromFloats(v.x, v.y, v.z) }
   public get forward(): Vector3          { return this._node ? this._node.forward             : new Vector3(0, 0, 1) }
   public get up(): Vector3               { return this._node ? this._node.up                 : new Vector3(0, 1, 0) }
   public get right(): Vector3            { return this._node ? this._node.right               : new Vector3(1, 0, 0) }

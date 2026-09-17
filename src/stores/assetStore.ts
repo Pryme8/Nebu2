@@ -171,7 +171,11 @@ export const useAssetStore = defineStore('asset', () => {
         await Promise.all(container.textures.map(tex => {
           if (tex.isReady()) return Promise.resolve()
           return new Promise<void>(resolve => {
-            tex.onLoadObservable.addOnce(() => resolve())
+            // onLoadObservable is declared on Texture, not on the BaseTexture
+            // that AssetContainer exposes — fall back to the timeout when the
+            // concrete texture type doesn't provide it.
+            const loadable = tex as { onLoadObservable?: { addOnce(cb: () => void): unknown } }
+            loadable.onLoadObservable?.addOnce(() => resolve())
             setTimeout(resolve, 5000)
           })
         }))
@@ -184,8 +188,7 @@ export const useAssetStore = defineStore('asset', () => {
           await fileSystemService.ensureDir(projectDirHandle, texturesDir)
         }
 
-        for (let ti = 0; ti < container.textures.length; ti++) {
-          const tex  = container.textures[ti]
+        for (const [ti, tex] of container.textures.entries()) {
           if (texToGuid.has(tex)) continue
 
           const size = tex.getSize()
@@ -195,14 +198,19 @@ export const useAssetStore = defineStore('asset', () => {
           try {
             const pixels = await tex.readPixels()
             if (pixels && pixels.byteLength > 0) {
-              let rgba: Uint8ClampedArray
+              // Explicitly ArrayBuffer-backed: ImageData rejects the generic
+              // ArrayBufferLike-backed form.
+              let rgba: Uint8ClampedArray<ArrayBuffer>
               if (pixels instanceof Float32Array) {
                 rgba = new Uint8ClampedArray(pixels.length)
-                for (let i = 0; i < pixels.length; i++) {
-                  rgba[i] = Math.round(Math.min(1, Math.max(0, pixels[i])) * 255)
+                for (const [i, v] of pixels.entries()) {
+                  rgba[i] = Math.round(Math.min(1, Math.max(0, v)) * 255)
                 }
               } else {
-                rgba = new Uint8ClampedArray(pixels.buffer, pixels.byteOffset, pixels.byteLength)
+                // Copy rather than view the source buffer: ImageData requires a
+                // Uint8ClampedArray backed by a plain ArrayBuffer.
+                rgba = new Uint8ClampedArray(pixels.byteLength)
+                rgba.set(new Uint8ClampedArray(pixels.buffer, pixels.byteOffset, pixels.byteLength))
               }
               const cvs = new OffscreenCanvas(size.width, size.height)
               const ctx = cvs.getContext('2d')!
@@ -262,8 +270,7 @@ export const useAssetStore = defineStore('asset', () => {
           await fileSystemService.ensureDir(projectDirHandle, materialsDir)
         }
 
-        for (let mi = 0; mi < container.materials.length; mi++) {
-          const bMat = container.materials[mi]
+        for (const [mi, bMat] of container.materials.entries()) {
           materialNames.push(bMat.name)
 
           const matGuid  = generateGuid()
@@ -289,8 +296,7 @@ export const useAssetStore = defineStore('asset', () => {
         const matNameToGuid = new Map<string, string>()
         for (const em of extractedMaterials) matNameToGuid.set(em.name, em.guid)
 
-        for (let i = 0; i < container.meshes.length; i++) {
-          const m = container.meshes[i]
+        for (const [i, m] of container.meshes.entries()) {
           if (m.name === '__root__') continue
 
           meshNames.push(m.name)

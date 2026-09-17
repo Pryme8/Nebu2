@@ -317,8 +317,9 @@ async function _buildFileBased(
 
 function _renderHtml(config: ExportConfig, manifest: NebuRuntimeManifest): string {
   const template = config.templateId === 'custom'
-    ? BUILT_IN_TEMPLATES.find(t => t.id === 'custom')!
+    ? BUILT_IN_TEMPLATES.find(t => t.id === 'custom')
     : (BUILT_IN_TEMPLATES.find(t => t.id === config.templateId) ?? BUILT_IN_TEMPLATES[0])
+  if (!template) throw new Error('No export template available')
 
   return applyTemplate(template, config.customHtml, {
     title:           escapeHtml(config.title),
@@ -336,7 +337,8 @@ function _zipAsync(files: Record<string, Uint8Array>): Promise<Uint8Array> {
 
 /** Trigger a browser download for the generated zip. */
 export function triggerZipDownload(zipBytes: Uint8Array, outputName: string): void {
-  const blob = new Blob([zipBytes], { type: 'application/zip' })
+  // Copy into an ArrayBuffer-backed view — Blob rejects ArrayBufferLike-backed ones.
+  const blob = new Blob([new Uint8Array(zipBytes)], { type: 'application/zip' })
   const url  = URL.createObjectURL(blob)
   const a    = document.createElement('a')
   a.href     = url
