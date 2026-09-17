@@ -71,14 +71,27 @@ Working entries:
 |---|---|---|
 | File | New Project… | Prompts for a name, then a folder picker; scaffolds `.nebu`, `scenes/`, `assets/`, `scripts/` |
 | File | Open Project… | Folder picker; rejects folders with no `.nebu` marker |
-| File | Save | Writes the active scene and project manifest (the `Ctrl+S` shown beside it is label text only — the shortcut is not bound globally) |
+| File | Save | Writes the active scene and project manifest; greys out with no project open |
+| Edit | Undo / Redo | Same history as <kbd>Ctrl</kbd>+<kbd>Z</kbd>/<kbd>Y</kbd>; greys out when the stack is empty |
+| Edit | Cut / Copy / Paste | Entity clipboard — captures the whole subtree, so Cut survives the source being deleted and a copy can be pasted repeatedly |
+| Edit | Duplicate / Delete | Acts on the selection; both undoable |
 | Edit | Project Settings… | Opens the [Project Settings](#project-settings) dialog |
+| View | Hierarchy / Inspector / Files / Assets / Console / Animation | Brings that panel to the front, activating its tab if it's in a group |
+| View | Viewport Settings… | Opens the [Viewport Settings](#viewport-settings) dialog |
 | View | Reset Layout | Clears the saved session and reloads |
+| GameObject | Create Empty | New empty entity under the selection |
+| GameObject | 3D Object ▸ | Submenu: Box, Sphere, Cylinder, Capsule, Torus, TorusKnot, Ground, Plane, Disc, IcoSphere |
+| GameObject | Light ▸ | Submenu: Hemispheric, Directional, Spot, Point |
+| GameObject | Camera | New entity with a Camera component |
 | Build | Export Project… (`Ctrl+B`) | Opens the [Export](#export) dialog |
+| Help | Documentation / About | Opens the README; shows the about toast |
 
-> **Note:** the Edit menu's Undo/Redo/Cut/Copy/Paste/Duplicate/Delete entries, the GameObject menu,
-> the Help menu and View's panel toggles are currently non-functional placeholders
-> (`action: () => {}`). Undo/redo work through the keyboard.
+Items that need a selection, an open project, or a non-empty undo stack grey themselves out rather
+than failing silently.
+
+> **Note:** the shortcuts shown beside menu items are labels. Only <kbd>Ctrl</kbd>+<kbd>Z</kbd>,
+> <kbd>Ctrl</kbd>+<kbd>Y</kbd> and the <kbd>Q</kbd>/<kbd>W</kbd>/<kbd>E</kbd>/<kbd>R</kbd> tool keys
+> are actually bound to the keyboard; the rest are menu-only for now.
 
 ---
 
@@ -88,7 +101,7 @@ Working entries:
 
 | Control | Purpose |
 |---|---|
-| Select / Translate / Rotate / Scale | Active manipulation tool — <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> (bound in `EditorLayer`; note these currently also fire while typing in a text field — see [Known issues](../README.md#known-issues)) |
+| Select / Translate / Rotate / Scale | Active manipulation tool — <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> (suppressed while a text field has focus) |
 | World / Local | Gizmo orientation space |
 | Snap | Toggles snapping; increments live in `editorStore` (`snapTranslation`, `snapRotation`, `snapScale`) |
 | Grid | Toggles the ground grid |
@@ -240,10 +253,8 @@ The data model (`types/animation.ts`) supports clips, tracks, keyframes, per-tra
 `AnimationComponent` compiles all of it into Babylon `Animation` objects inside an `AnimationGroup`;
 `AnimationSystem` drives playback in play mode.
 
-> ⚠️ **Adding a track currently fails.** `AnimationComponent.syncToBabylon()` calls
-> `AnimationGroup.normalize()` on a track that has no keyframes yet, and Babylon's `normalize()`
-> dereferences `keys[0].frame`. The resulting `TypeError` aborts the sync before the UI is notified,
-> so the track never appears. See [Known issues](../README.md#known-issues).
+Tracks start empty and are skipped when the clip is compiled to Babylon, so a clip is only turned
+into an `AnimationGroup` once at least one track has a keyframe.
 
 ---
 
@@ -432,8 +443,8 @@ caveat that materials and scripts are applied at runtime in "V2".
 <kbd>Ctrl</kbd>+<kbd>Y</kbd> (or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>) redoes. Shortcuts are
 ignored while typing in an input.
 
-Covered today: create/destroy/rename/reparent/copy entity, add/remove component, property edits,
-gizmo drags, and the animation clip/track/keyframe operations. The history is cleared when the
+Covered today: create/destroy/rename/reparent/copy/paste entity, add/remove component, property
+edits, gizmo drags, and the animation clip/track/keyframe operations. The history is cleared when the
 active scene changes so commands can't hold stale component references.
 
 ---
