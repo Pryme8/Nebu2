@@ -655,15 +655,6 @@ function scriptSectionTitle(comp: ScriptComponent): string {
   return file.replace(/\.ts$/, '') || 'Script'
 }
 
-/** Return the exposed prop fields for a bound script component (for future use). */
-function scriptExposedFields(comp: ScriptComponent): Array<{ key: string; label: string }> {
-  if (!comp._entry) return []
-  return (comp._entry.cls.exposedProps ?? []).map(p => ({
-    key:   `propValues.${p.key}`,
-    label: p.label,
-  }))
-}
-
 function removeComponent(componentType: string): void {
   if (!primary.value) return
   commandStore.execute(new RemoveComponentCommand(primary.value.id, componentType))

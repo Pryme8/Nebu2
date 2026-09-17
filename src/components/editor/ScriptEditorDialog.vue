@@ -1,7 +1,6 @@
 <template>
   <Teleport to="body">
     <div
-      ref="dialogRef"
       class="fixed inset-0 z-[9000] flex flex-col"
       style="background: var(--color-bg-base)"
       tabindex="-1"
@@ -88,7 +87,6 @@ const source      = ref('')
 const savedSource = ref('')
 const dirty       = computed(() => source.value !== savedSource.value)
 
-const dialogRef = ref<HTMLDivElement | null>(null)
 const editorRef = ref<InstanceType<typeof MonacoEditor> | null>(null)
 
 // Load file whenever the path changes

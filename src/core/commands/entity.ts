@@ -6,8 +6,15 @@ import type { ICommand }         from '@/types/command'
 import type { SerializedEntity, SerializedComponent } from '@/core/ecs/World'
 import type { Entity }           from '@/core/ecs/Entity'
 import { useSceneStore }         from '@/stores/sceneStore'
+import { generateGuid }          from '@/lib/guid'
 
 //  Shared helpers 
+
+export function snapshotSubtree(rootId: string): SerializedEntity[] {
+  const entities = useSceneStore().activeScene?.world.entities
+  if (!entities) return []
+  return _collectSubtree(entities, rootId).map(_snapshotEntity)
+}
 
 function _snapshotEntity(entity: Entity): SerializedEntity {
   const components: SerializedComponent[] = []
@@ -296,5 +303,68 @@ export class CopyEntityCommand implements ICommand {
     const live = store.activeScene?.world.getEntity(this._snapshot.id)
     if (live) this._snapshot = _snapshotEntity(live)
     store.destroyEntity(this._snapshot!.id)
+  }
+}
+
+// ── PasteEntityCommand ───────────────────────────────────────────────────────
+
+/**
+ * Re-instantiate a previously snapshotted subtree under `parentId`.
+ *
+ * Every id in the snapshot is remapped to a fresh GUID, with internal
+ * parent links rewritten to match, so the same clipboard contents can be
+ * pasted repeatedly and survive the source being deleted (Cut).
+ */
+export class PasteEntityCommand implements ICommand {
+  readonly description: string
+  readonly silent      = false
+  private  _source:    SerializedEntity[]
+  private  _parentId:  string | null
+  /** Ids created by execute(), so undo() can remove exactly those. */
+  private  _createdIds: string[] = []
+
+  constructor(snapshots: SerializedEntity[], parentId: string | null) {
+    this._source     = snapshots
+    this._parentId   = parentId
+    this.description = `Paste "${snapshots[0]?.name ?? 'Entity'}"`
+  }
+
+  execute(): void {
+    const sceneStore = useSceneStore()
+    if (this._source.length === 0) return
+
+    // Old id → new id for the whole subtree, resolved before any restore so
+    // child parentIds can be rewritten in one pass.
+    const idMap = new Map<string, string>()
+    for (const snap of this._source) idMap.set(snap.id, generateGuid())
+
+    const rootOldId = this._source[0]?.id
+    this._createdIds = []
+
+    for (const snap of this._source) {
+      const newId = idMap.get(snap.id)!
+      const clone: SerializedEntity = {
+        ...snap,
+        id:       newId,
+        name:     snap.id === rootOldId ? `${snap.name} (Copy)` : snap.name,
+        // Root re-parents to the paste target; descendants follow the remap.
+        parentId: snap.id === rootOldId
+          ? this._parentId
+          : (snap.parentId ? idMap.get(snap.parentId) ?? null : null),
+        tags:       [...snap.tags],
+        components: snap.components.map(c => ({ type: c.type, data: { ...c.data } })),
+      }
+      sceneStore.restoreEntity(clone)
+      this._createdIds.push(newId)
+    }
+  }
+
+  undo(): void {
+    const sceneStore = useSceneStore()
+    // Children first so parents never disappear out from under them.
+    for (const id of [...this._createdIds].reverse()) {
+      sceneStore.destroyEntity(id)
+    }
+    this._createdIds = []
   }
 }

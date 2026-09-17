@@ -40,7 +40,7 @@ function ensureNebuTypes(): void {
 
   // 1. Nebu ambient globals — NebuScript, Entity, built-in components, etc.
   //    Available in user scripts without any import statement.
-  monaco.languages.typescript.typescriptDefaults.addExtraLib(
+  monaco.typescript.typescriptDefaults.addExtraLib(
     getNebuAmbientTypes(),
     NEBU_LIB_URI,
   )
@@ -51,14 +51,14 @@ function ensureNebuTypes(): void {
   //    Monaco's TS resolver walks up from the open file's URI and finds these,
   //    making `import { Vector3 } from "@babylonjs/core"` fully typed.
   for (const [path, content] of Object.entries(packageTypes)) {
-    monaco.languages.typescript.typescriptDefaults.addExtraLib(content, path)
+    monaco.typescript.typescriptDefaults.addExtraLib(content, path)
   }
 
   // 3. Compiler options
-  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-    target:               monaco.languages.typescript.ScriptTarget.ES2022,
-    module:               monaco.languages.typescript.ModuleKind.ESNext,
-    moduleResolution:     monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+  monaco.typescript.typescriptDefaults.setCompilerOptions({
+    target:               monaco.typescript.ScriptTarget.ESNext,
+    module:               monaco.typescript.ModuleKind.ESNext,
+    moduleResolution:     monaco.typescript.ModuleResolutionKind.NodeJs,
     strict:               true,
     noImplicitAny:        true,
     noUnusedLocals:       false,
@@ -69,7 +69,7 @@ function ensureNebuTypes(): void {
   })
 
   // 4. Diagnostics
-  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+  monaco.typescript.typescriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
     noSyntaxValidation:   false,
   })
@@ -84,7 +84,7 @@ function ensurePluginTypes(content: string): void {
   _registeredPluginContent = content
   _pluginLibHandle?.dispose()
   _pluginLibHandle = content
-    ? monaco.languages.typescript.typescriptDefaults.addExtraLib(content, NEBU_PLUGIN_LIB_URI)
+    ? monaco.typescript.typescriptDefaults.addExtraLib(content, NEBU_PLUGIN_LIB_URI)
     : null
 }
 

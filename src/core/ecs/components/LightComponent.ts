@@ -291,9 +291,13 @@ export class LightComponent extends Component {
       })
       const tip: WidgetPoint = { x: px, y: py, z: pz }
       const q = STEPS / 4 | 0
+      const spokes = [0, q, q * 2, q * 3]
+        .map(i => ring[i])
+        .filter((p): p is WidgetPoint => p !== undefined)
+        .map(p => [tip, p])
       return {
         groups: [{
-          lines: [ring, [tip, ring[0]], [tip, ring[q]], [tip, ring[q * 2]], [tip, ring[q * 3]]],
+          lines: [ring, ...spokes],
           color: this.diffuse,
         }],
       }

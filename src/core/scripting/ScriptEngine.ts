@@ -112,8 +112,8 @@ type HookName = (typeof HOOK_NAMES)[number]
  * ScriptEditorSystem to decide which observables to register.
  */
 function _computeHookFlags(cls: new () => NebuScript): ScriptHookFlags {
-  const proto = cls.prototype as Record<string, unknown>
-  const base  = NebuScript.prototype as Record<string, unknown>
+  const proto = cls.prototype as unknown as Record<string, unknown>
+  const base  = NebuScript.prototype as unknown as Record<string, unknown>
   const flags: Partial<ScriptHookFlags> = {}
   for (const name of HOOK_NAMES) {
     flags[name as HookName] = proto[name] !== base[name]

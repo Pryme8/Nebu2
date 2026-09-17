@@ -4,14 +4,14 @@ import { NebuScene }                from '@/core/scene/NebuScene'
 import type { SerializedScene }     from '@/core/scene/NebuScene'
 import type { Entity }              from '@/core/ecs/Entity'
 import { TransformComponent }       from '@/core/ecs/components/TransformComponent'
-import { TransformNode, HemisphericLight, DirectionalLight, SpotLight, PointLight, ShadowGenerator, CascadedShadowGenerator, Color3, Vector3, Matrix, UniversalCamera, ArcRotateCamera, Camera as BabylonCamera, MeshBuilder, AbstractMesh, type Scene as BabylonScene, type Nullable, type Observer } from '@babylonjs/core'
+import { TransformNode, HemisphericLight, DirectionalLight, SpotLight, PointLight, ShadowGenerator, CascadedShadowGenerator, Color3, Vector3, UniversalCamera, ArcRotateCamera, Camera as BabylonCamera, MeshBuilder, Mesh, AbstractMesh, type Scene as BabylonScene, type Nullable, type Observer } from '@babylonjs/core'
 import { LightComponent }           from '@/core/ecs/components/LightComponent'
 import { CameraComponent }          from '@/core/ecs/components/CameraComponent'
 import { MeshComponent }            from '@/core/ecs/components/MeshComponent'
 import { ScriptComponent }          from '@/core/ecs/components/ScriptComponent'
 import { AnimationComponent }       from '@/core/ecs/components/AnimationComponent'
 import type { Component }           from '@/core/ecs/Component'
-import { defaultComponentRegistry, getComponentFactory } from '@/core/ecs/componentRegistry'
+import { getComponentFactory } from '@/core/ecs/componentRegistry'
 import { ScriptRuntimeSystem }      from '@/core/scripting/ScriptRuntimeSystem'
 import { AnimationSystem }          from '@/core/ecs/systems/AnimationSystem'
 import { scriptEditorSystem }       from '@/core/scripting/ScriptEditorSystem'
@@ -914,11 +914,7 @@ export const useSceneStore = defineStore('scene', () => {
     const targets: AbstractMesh[] = []
     if (mesh.babylonMesh) targets.push(mesh.babylonMesh)
     if (mesh.babylonModelMesh) {
-      if (mesh.babylonModelMesh instanceof AbstractMesh) {
-        targets.push(mesh.babylonModelMesh, ...mesh.babylonModelMesh.getChildMeshes(false))
-      } else {
-        targets.push(...mesh.babylonModelMesh.getChildMeshes(false))
-      }
+      targets.push(mesh.babylonModelMesh, ...mesh.babylonModelMesh.getChildMeshes(false))
     }
     if (targets.length === 0) return
 
@@ -954,11 +950,7 @@ export const useSceneStore = defineStore('scene', () => {
       const targets: AbstractMesh[] = []
       if (mc.babylonMesh) targets.push(mc.babylonMesh)
       if (mc.babylonModelMesh) {
-        if (mc.babylonModelMesh instanceof AbstractMesh) {
-          targets.push(mc.babylonModelMesh, ...mc.babylonModelMesh.getChildMeshes(false))
-        } else {
-          targets.push(...mc.babylonModelMesh.getChildMeshes(false))
-        }
+        targets.push(mc.babylonModelMesh, ...mc.babylonModelMesh.getChildMeshes(false))
       }
       for (const child of targets) {
         sg.addShadowCaster(child as import('@babylonjs/core').Mesh, true)
@@ -1126,9 +1118,16 @@ export const useSceneStore = defineStore('scene', () => {
               break
             }
             case 'instance': {
-              const inst = modelEntry.baseMesh.createInstance(`${entityId}_inst`)
-              inst.parent       = tfNode
-              mesh.babylonModelMesh = inst
+              const base = modelEntry.baseMesh
+              if (base instanceof Mesh) {
+                const inst = base.createInstance(`${entityId}_inst`)
+                inst.parent           = tfNode
+                mesh.babylonModelMesh = inst
+              } else {
+                // Only a full Mesh can be instanced; fall back to the base mesh.
+                console.warn('[sceneStore] instance mode needs a Mesh, got', base.getClassName())
+                mesh.babylonModelMesh = base
+              }
               break
             }
             case 'thinInstance': {
@@ -1137,9 +1136,14 @@ export const useSceneStore = defineStore('scene', () => {
               const mat = tfNode
                 ? tfNode.getWorldMatrix()
                 : BjsMatrix.Identity()
-              modelEntry.baseMesh.thinInstanceAdd(mat)
+              const base = modelEntry.baseMesh
+              if (base instanceof Mesh) {
+                base.thinInstanceAdd(mat)
+              } else {
+                console.warn('[sceneStore] thinInstance mode needs a Mesh, got', base.getClassName())
+              }
               // For editor selection, keep a reference to the base mesh.
-              mesh.babylonModelMesh = modelEntry.baseMesh
+              mesh.babylonModelMesh = base
               break
             }
           }

@@ -118,12 +118,27 @@ export default defineConfig({
     },
   },
   build: {
-    // Split Monaco into its own chunk so it loads lazily and doesn't block
-    // the initial app bundle.
     rollupOptions: {
       output: {
+        // Split the heavy third-party code away from app code so a change to
+        // the editor doesn't invalidate megabytes of cached vendor bundle, and
+        // so the browser can fetch them in parallel.
+        //
+        // Deliberately coarse: Babylon's modules are densely interdependent, so
+        // slicing it finer produces a spray of tiny chunks plus a shared one
+        // that is almost as large. Real size reduction needs deep per-module
+        // imports, which conflicts with the lazy shader loading described in
+        // optimizeDeps below.
         manualChunks: (id) => {
           if (id.includes('monaco-editor') || id.includes('package-types')) return 'monaco'
+          if (id.includes('node_modules/@babylonjs/havok'))     return 'babylon-havok'
+          if (id.includes('node_modules/@babylonjs/loaders'))   return 'babylon-loaders'
+          if (id.includes('node_modules/@babylonjs/materials')) return 'babylon-materials'
+          if (id.includes('node_modules/@babylonjs/core'))      return 'babylon-core'
+          if (id.includes('node_modules/sucrase'))              return 'sucrase'
+          if (id.includes('node_modules/vue') ||
+              id.includes('node_modules/pinia') ||
+              id.includes('node_modules/@vueuse'))              return 'vue'
         },
       },
     },

@@ -23,7 +23,7 @@ import { CustomScaleGizmo }    from '@/core/scene/gizmos/CustomScaleGizmo'
 import { useEditorStore }      from '@/stores/editorStore'
 import { useSceneStore }       from '@/stores/sceneStore'
 import { useCommandStore }     from '@/stores/commandStore'
-import { TransformComponent }  from '@/core/ecs/components/TransformComponent'
+import { TransformComponent, toVec3 } from '@/core/ecs/components/TransformComponent'
 import { MeshComponent }       from '@/core/ecs/components/MeshComponent'
 import { SetPropertyCommand }  from '@/core/commands/component'
 import type { Vec3 }           from '@/core/ecs/components/TransformComponent'
@@ -122,7 +122,7 @@ export function useEditorGizmos(sceneRef: ShallowRef<BabylonScene | null>): void
       const id = editorStore.primaryId
       if (!id) return
       const tf = sceneStore.activeScene?.world.getEntity(id)?.getComponent<TransformComponent>('Transform')
-      if (tf) _dragStartValue = { ...tf.position }
+      if (tf) _dragStartValue = toVec3(tf.position)
     })
     const h1 = gizmo.onDragObservable.add(() => {
       const id = editorStore.primaryId
@@ -135,7 +135,7 @@ export function useEditorGizmos(sceneRef: ShallowRef<BabylonScene | null>): void
       const tf = id ? sceneStore.activeScene?.world.getEntity(id)?.getComponent<TransformComponent>('Transform') : null
       if (!tf || !_dragStartValue || !id) { _dragStartValue = null; return }
       syncFromNode(tf, 'position', false)
-      const newVal: Vec3 = { ...tf.position }
+      const newVal: Vec3 = toVec3(tf.position)
       const gestureId = `gizmo-pos-${id}-${performance.now()}`
       commandStore.execute(new SetPropertyCommand(tf, 'position', _dragStartValue, newVal, gestureId))
       _dragStartValue = null
@@ -153,7 +153,7 @@ export function useEditorGizmos(sceneRef: ShallowRef<BabylonScene | null>): void
       const id = editorStore.primaryId
       if (!id) return
       const tf = sceneStore.activeScene?.world.getEntity(id)?.getComponent<TransformComponent>('Transform')
-      if (tf) _startQuat = { ...tf.rotation }
+      if (tf) _startQuat = toVec3(tf.rotation)
     })
     const h1 = gizmo.onDragObservable.add(() => {
       const id = editorStore.primaryId
@@ -166,7 +166,7 @@ export function useEditorGizmos(sceneRef: ShallowRef<BabylonScene | null>): void
       const tf = id ? sceneStore.activeScene?.world.getEntity(id)?.getComponent<TransformComponent>('Transform') : null
       if (!tf || !_startQuat || !id) { _startQuat = null; return }
       syncFromNode(tf, 'rotation', true)   // clearQuat=true: convert back to Euler
-      const newVal: Vec3 = { ...tf.rotation }
+      const newVal: Vec3 = toVec3(tf.rotation)
       const gestureId = `gizmo-rot-${id}-${performance.now()}`
       commandStore.execute(new SetPropertyCommand(tf, 'rotation', _startQuat, newVal, gestureId))
       _startQuat = null
@@ -184,7 +184,7 @@ export function useEditorGizmos(sceneRef: ShallowRef<BabylonScene | null>): void
       const id = editorStore.primaryId
       if (!id) return
       const tf = sceneStore.activeScene?.world.getEntity(id)?.getComponent<TransformComponent>('Transform')
-      if (tf) _startScale = { ...tf.scale }
+      if (tf) _startScale = toVec3(tf.scale)
     })
     const h1 = gizmo.onDragObservable.add(() => {
       const id = editorStore.primaryId
@@ -197,7 +197,7 @@ export function useEditorGizmos(sceneRef: ShallowRef<BabylonScene | null>): void
       const tf = id ? sceneStore.activeScene?.world.getEntity(id)?.getComponent<TransformComponent>('Transform') : null
       if (!tf || !_startScale || !id) { _startScale = null; return }
       syncFromNode(tf, 'scale', false)
-      const newVal: Vec3 = { ...tf.scale }
+      const newVal: Vec3 = toVec3(tf.scale)
       const gestureId = `gizmo-scl-${id}-${performance.now()}`
       commandStore.execute(new SetPropertyCommand(tf, 'scale', _startScale, newVal, gestureId))
       _startScale = null

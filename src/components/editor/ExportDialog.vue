@@ -193,10 +193,12 @@
             <ul class="flex flex-col gap-1 py-1 text-[11px] text-[var(--color-text-secondary)]">
               <li class="flex gap-1.5 items-start"><span class="text-green-400 mt-0.5">✔</span> Scene data (entities, hierarchy, settings)</li>
               <li class="flex gap-1.5 items-start"><span class="text-green-400 mt-0.5">✔</span> All binary assets (meshes, textures, audio)</li>
-              <li class="flex gap-1.5 items-start"><span class="text-green-400 mt-0.5">✔</span> Materials</li>
-              <li class="flex gap-1.5 items-start"><span class="text-green-400 mt-0.5">✔</span> Scripts (TypeScript → JavaScript)</li>
+              <li class="flex gap-1.5 items-start"><span class="text-green-400 mt-0.5">✔</span> Materials (Standard, PBR) with textures</li>
+              <li class="flex gap-1.5 items-start"><span class="text-green-400 mt-0.5">✔</span> Scripts (TypeScript → JavaScript), full NebuScript lifecycle</li>
+              <li class="flex gap-1.5 items-start"><span class="text-green-400 mt-0.5">✔</span> Lights &amp; shadows, cameras, Havok physics</li>
               <li class="flex gap-1.5 items-start"><span class="text-[var(--color-text-muted)] mt-0.5">◦</span> Runtime uses Babylon.js from CDN (internet required)</li>
-              <li class="flex gap-1.5 items-start"><span class="text-yellow-400 mt-0.5">⚠</span> Materials / scripts applied at runtime — V2</li>
+              <li class="flex gap-1.5 items-start"><span class="text-yellow-400 mt-0.5">⚠</span> Imported mesh assets (GLB/GLTF) are not reconstructed yet</li>
+              <li class="flex gap-1.5 items-start"><span class="text-yellow-400 mt-0.5">⚠</span> Shader / Custom / PBRCustom materials are not supported yet</li>
             </ul>
           </BaseSection>
 
@@ -233,7 +235,7 @@
             Cancel
           </BaseButton>
           <BaseButton
-            variant="primary"
+            variant="solid"
             size="sm"
             :disabled="exportStore.isExporting || form.selectedScenes.length === 0"
             @click="doExport"

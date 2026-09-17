@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
 import type { EditorState, EditorTool, GizmoSpace, EntityId, EditorPrefs, ViewportPrefs } from '@/types/editor'
 import { useSceneStore } from '@/stores/sceneStore'
+import type { SerializedEntity } from '@/core/ecs/World'
 
 export const useEditorStore = defineStore('editor', () => {
 
@@ -13,6 +14,12 @@ export const useEditorStore = defineStore('editor', () => {
   const selectedScriptRelPath = ref<string | null>(null)
   const selectedModelGuid   = ref<string | null>(null)
   const primaryId           = computed(() => [...selectedIds.value][0] ?? null)
+
+  // ── Entity clipboard (temp — not persisted) ──────────────────────
+  // Holds a serialized subtree rather than an id, so Cut still works
+  // after the source entity is gone and a copy can be pasted repeatedly.
+  const clipboard = ref<SerializedEntity[] | null>(null)
+  const hasClipboard = computed(() => (clipboard.value?.length ?? 0) > 0)
 
   function select(id: EntityId, multi = false): void {
     selectedSceneGuid.value    = null   // entity click clears scene selection
@@ -190,6 +197,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   return {
     selectedIds, selectedSceneGuid, selectedMaterialId, selectedTextureGuid, selectedScriptRelPath, selectedModelGuid, primaryId,
+    clipboard, hasClipboard,
     select, deselect, clearSelection, selectScene, selectMaterial, selectTexture, selectScript, selectModel,
     activeTool, gizmoSpace,
     snapEnabled, snapTranslation, snapRotation, snapScale,

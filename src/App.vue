@@ -31,15 +31,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, nextTick, onUnmounted, watch } from 'vue'
+import { onMounted, nextTick, onUnmounted, watch, defineAsyncComponent } from 'vue'
 import { usePanelStore }    from '@/stores/panelStore'
 import { useLayerStore }    from '@/stores/layerStore'
-import { useProjectStore }  from '@/stores/projectStore'
 import { useSceneStore }    from '@/stores/sceneStore'
 import { useCommandStore }  from '@/stores/commandStore'
 import { useEditorStore }   from '@/stores/editorStore'
 import { usePluginStore }   from '@/stores/pluginStore'
 import { havokPlugin }      from '@nebu/plugin-havok'
+import { isTextEntryTarget } from '@/lib/domFocus'
 
 import AppMenuBar       from '@/components/editor/AppMenuBar.vue'
 import EditorToolbar    from '@/components/editor/EditorToolbar.vue'
@@ -55,10 +55,15 @@ import AppStatusBar      from '@/components/base/AppStatusBar.vue'
 import ScriptEditorPanel  from '@/components/editor/ScriptEditorPanel.vue'
 import ViewportPanel      from '@/components/editor/ViewportPanel.vue'
 import AnimationPanel     from '@/components/editor/AnimationPanel.vue'
-import ScriptEditorDialog  from '@/components/editor/ScriptEditorDialog.vue'
-import ProjectSettingsDialog  from '@/components/editor/ProjectSettingsDialog.vue'
-import ViewportSettingsDialog from '@/components/editor/ViewportSettingsDialog.vue'
-import ExportDialog           from '@/components/editor/ExportDialog.vue'
+// Dialogs are loaded on demand. Each is already v-if'd on a store flag, so it
+// only renders when opened — and ScriptEditorDialog pulls in Monaco, which is
+// by far the heaviest dependency in the app. Importing it statically put the
+// whole editor (~10 MB) in the initial page load even for users who never open
+// a script.
+const ScriptEditorDialog      = defineAsyncComponent(() => import('@/components/editor/ScriptEditorDialog.vue'))
+const ProjectSettingsDialog   = defineAsyncComponent(() => import('@/components/editor/ProjectSettingsDialog.vue'))
+const ViewportSettingsDialog  = defineAsyncComponent(() => import('@/components/editor/ViewportSettingsDialog.vue'))
+const ExportDialog            = defineAsyncComponent(() => import('@/components/editor/ExportDialog.vue'))
 
 const componentRegistry: Record<string, unknown> = {
   HierarchyPanel,
@@ -72,7 +77,6 @@ const componentRegistry: Record<string, unknown> = {
 }
 
 const panelStore   = usePanelStore()
-const projectStore = useProjectStore()
 const sceneStore   = useSceneStore()
 const commandStore = useCommandStore()
 const editorStore  = useEditorStore()
@@ -102,8 +106,7 @@ function _onKeyDown(e: KeyboardEvent): void {
   if (!ctrl) return
 
   // Don't intercept shortcuts while the user is typing in an input
-  const tag = (e.target as HTMLElement).tagName
-  if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement).isContentEditable) return
+  if (isTextEntryTarget(e.target)) return
 
   if (e.key === 'z' && !e.shiftKey) {
     e.preventDefault()

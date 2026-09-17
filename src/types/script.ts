@@ -69,12 +69,24 @@ export interface ScriptHookFlags {
 }
 
 /**
+ * A compiled NebuScript subclass, as a constructor that still carries the
+ * statics declared on it.
+ *
+ * A bare `new () => NebuScript` loses `exposedProps`, so every consumer that
+ * wanted to read the declared inspector fields had to reach for `any`.
+ */
+export type NebuScriptClass =
+  (new () => import('@/core/scripting/NebuScript').NebuScript) & {
+    readonly exposedProps?: readonly ExposedPropDef[]
+  }
+
+/**
  * One entry in scriptStore's reactive class registry.
  * Created when ScriptEngine successfully compiles a script file.
  */
 export interface ScriptClassEntry {
   /** The compiled, executable script class constructor. */
-  cls:  new () => import('@/core/scripting/NebuScript').NebuScript
+  cls:  NebuScriptClass
   /** Display name derived from the filename (no path, no extension). */
   name: string
   /** Lifecycle presence flags computed at load time. */

@@ -757,7 +757,7 @@ export const useProjectStore = defineStore('project', () => {
 
     // Find all OTHER instances of this prefab (by PrefabInstance.prefabGuid).
     // Capture each root's current transform before destroying it.
-    const { TransformComponent } = await import('@/core/ecs/components/TransformComponent')
+    const { TransformComponent, toVec3 } = await import('@/core/ecs/components/TransformComponent')
     type Vec3 = { x: number; y: number; z: number }
     const otherRoots: Array<{
       id:       string
@@ -774,9 +774,9 @@ export const useProjectStore = defineStore('project', () => {
       otherRoots.push({
         id:       e.id,
         parentId: e.parentId,
-        savedPos: tf ? { ...tf.position } : null,
-        savedRot: tf ? { ...tf.rotation } : null,
-        savedSca: tf ? { ...tf.scale    } : null,
+        savedPos: tf ? toVec3(tf.position) : null,
+        savedRot: tf ? toVec3(tf.rotation) : null,
+        savedSca: tf ? toVec3(tf.scale)    : null,
       })
     }
 
@@ -790,8 +790,9 @@ export const useProjectStore = defineStore('project', () => {
       const needRestore = (!transformMask.position && savedPos)
                        || (!transformMask.rotation && savedRot)
                        || (!transformMask.scale    && savedSca)
-      if (needRestore && newRoots.length > 0) {
-        const newTf = newRoots[0].getComponent<InstanceType<typeof TransformComponent>>('Transform')
+      const newRoot = newRoots[0]
+      if (needRestore && newRoot) {
+        const newTf = newRoot.getComponent<InstanceType<typeof TransformComponent>>('Transform')
         if (newTf) {
           if (!transformMask.position && savedPos) newTf.position = savedPos
           if (!transformMask.rotation && savedRot) newTf.rotation = savedRot

@@ -22,9 +22,9 @@ is an in-progress personal project, not a released tool. Before relying on it, r
 
 | | |
 |---|---|
-| Runtime | Works — `npm run dev` and `npx vite build` both succeed |
-| Strict typecheck | **Fails** — `vue-tsc` reports 106 errors, so `npm run build` does not complete |
-| Test suite | None |
+| Runtime | Works — `npm run dev` and `npm run build` both succeed |
+| Strict typecheck | Clean — `vue-tsc -b` reports 0 errors |
+| Test suite | 39 unit checks (Vitest) + 24 end-to-end checks against a real browser |
 | Successor to | [Pryme8/NeBu](https://github.com/Pryme8/NeBu) |
 
 ---
@@ -48,11 +48,15 @@ npm run dev
 
 Then open <http://localhost:5173>.
 
+```bash
+npm test
+```
+
+Unit tests. For the end-to-end suite, leave `npm run dev` running and use `npm run test:e2e` —
+see [tests/README.md](tests/README.md).
+
 To create a project: **File → New Project…**, pick an empty folder, and grant read/write access. Nebu2
 writes a `.nebu` marker file plus `scenes/`, `assets/`, and `scripts/` folders into it.
-
-> `npm run build` runs `vue-tsc -b && vite build` and currently stops at the typecheck. To produce a
-> bundle today, run `npx vite build` directly — Vite strips types with esbuild and builds successfully.
 
 ---
 
@@ -87,6 +91,7 @@ writes a `.nebu` marker file plus `scenes/`, `assets/`, and `scripts/` folders i
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | ECS, stores, layer stack, command pattern, project file format |
 | [docs/SCRIPTING.md](docs/SCRIPTING.md) | `NebuScript` lifecycle, exposed properties, the compile pipeline |
 | [packages/nebu-plugin-havok/PLUGIN_GUIDE.md](packages/nebu-plugin-havok/PLUGIN_GUIDE.md) | Writing a plugin, using the Havok plugin as reference |
+| [tests/README.md](tests/README.md) | How the unit and end-to-end suites work |
 | [ANIMATION_PLAN.md](ANIMATION_PLAN.md) | Design document for the animation system |
 | [.github/copilot-instructions.md](.github/copilot-instructions.md) | Coding conventions enforced across the codebase |
 
@@ -131,39 +136,39 @@ docs/           Documentation and screenshots
 
 ## Known issues
 
-These were found while auditing the current tree. None of them block the editor from running.
+1. **Babylon is ~6.6 MB of the initial load.** Vendor code is now split into cacheable chunks and
+   Monaco no longer loads until you open a script, which cut first-load JS from ~18.6 MB to
+   ~7.7 MB. What remains is dominated by `@babylonjs/core`, which the viewport needs immediately.
+   Shrinking it further means deep per-module Babylon imports, which conflicts with the lazy shader
+   loading that `optimizeDeps.exclude` exists to protect — see the comments in
+   [`vite.config.ts`](vite.config.ts).
 
-1. **`npm run build` fails the typecheck.** `vue-tsc -b` reports 106 errors across 25 files —
-   mostly `strictNullChecks` violations in `src/stores/assetStore.ts` (29), a `Vec3`/`Vector3`
-   mix-up in `src/stores/projectStore.ts`, and missing `static exposedProps` typing on
-   `new () => NebuScript`. `npx vite build` still produces a working bundle.
+2. **Export gaps.** The exported runtime reconstructs scene data, procedural meshes, lights and
+   shadows, cameras, Standard/PBR materials with textures, the full script lifecycle and Havok
+   physics. It does **not** yet rebuild imported GLB/GLTF mesh assets, or Shader / Custom /
+   PBRCustom materials. The export dialog now lists these explicitly.
 
-2. **Adding an animation property track throws.**
-   [`AnimationComponent.syncToBabylon()`](src/core/ecs/components/AnimationComponent.ts) calls
-   `group.normalize(0, clip.frameCount)` on a track whose `keyframes` array is still empty
-   (tracks are created empty in [`AddAnimationTrackCommand`](src/core/commands/animation.ts)).
-   Babylon's `normalize()` reads `keys[0].frame`, so it throws
-   `TypeError: Cannot read properties of undefined (reading 'frame')` and the new track never
-   reaches the timeline. **Add Track is currently non-functional.**
+3. **Coverage is shallow.** The suites cover the paths that have actually broken, not the codebase
+   as a whole — notably the asset import pipeline, materials and prefabs have no tests yet.
 
-3. **Menu bar items are largely stubs.** In [`AppMenuBar.vue`](src/components/editor/AppMenuBar.vue)
-   the entire Edit, GameObject and Help menus — and most of View — are wired to `action: () => {}`.
-   Undo/redo work via <kbd>Ctrl</kbd>+<kbd>Z</kbd>/<kbd>Y</kbd>, not via the menu.
+4. **Scene switching depends on the Files panel.** `projectStore.openSceneFromMeta` is only reachable
+   from `FileBrowserItem` (double-click, or right-click → Open Scene). `ProjectPanel.vue` looks like
+   it was intended as a second entry point but was never added to the `componentRegistry` in
+   `App.vue`, so it is unreachable. **View → Files** re-focuses the panel if it gets buried.
 
-4. **Tool shortcuts fire while typing.** `EditorLayer._handleToolShortcut` only checks for Ctrl/Alt,
-   not for input focus, so typing `q`, `w`, `e` or `r` in the hierarchy search box, an entity rename
-   field or any inspector text input silently switches the active gizmo tool.
-   (`App.vue`'s undo/redo handler does guard against this — `EditorLayer` does not.)
+### Recently fixed
 
-5. **Bundle size.** The main chunk is ~8 MB (1.8 MB gzipped) and Monaco adds ~11 MB (2.2 MB gzipped).
-   Monaco is already split into a lazy chunk; Babylon is not yet trimmed.
-
-6. **Export caveat.** The export dialog notes that materials and scripts are applied at runtime in
-   "V2" — verify exported bundles before shipping them.
-
-7. **No automated tests.**
-
----
+- `npm run build` failing on 107 strict-typecheck errors — now clean.
+- Adding an animation property track threw inside `AnimationGroup.normalize()` and the track never
+  appeared. Empty tracks are now skipped.
+- `Q`/`W`/`E`/`R` switched the gizmo tool while typing in any text field.
+- The Edit, View, GameObject and Help menus were `action: () => {}` stubs — all now wired, with
+  items greying out when unavailable.
+- Spreading a Babylon `Vector3` silently produced coordinate-less objects in the gizmo undo and
+  prefab-apply snapshots.
+- Menu bar items re-opened on hover after any menu had been used once.
+- Monaco (~10.8 MB) was documented as lazily loaded but was pulled into the initial page load by a
+  static import chain from `App.vue`; the dialogs are async components now.
 
 ## License
 

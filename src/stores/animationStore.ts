@@ -14,8 +14,7 @@ import { ref, computed, watch } from 'vue'
 import { useSceneStore }  from '@/stores/sceneStore'
 import { useCommandStore } from '@/stores/commandStore'
 import { InsertKeyframeCommand } from '@/core/commands/animation'
-import type { AnimationClipDef, AnimationTrackDef, KeyframeDef, AnimatableValueType } from '@/types/animation'
-import { generateGuid }  from '@/lib/guid'
+import type { AnimationClipDef, AnimatableValueType } from '@/types/animation'
 import { defaultKeyframeValue } from '@/types/animation'
 
 export const useAnimationStore = defineStore('animation', () => {

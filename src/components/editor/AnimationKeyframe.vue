@@ -39,16 +39,14 @@ const posPercent = computed(() =>
 // ── Drag handling ──────────────────────────────────────────────────────────
 
 let _dragStartX  = 0
-let _dragStartFrame = 0
 let _dragging = false
 
 function onMouseDown(e: MouseEvent): void {
   e.preventDefault()
   emit('select', props.frame, e.ctrlKey || e.metaKey || e.shiftKey)
 
-  _dragStartX     = e.clientX
-  _dragStartFrame = props.frame
-  _dragging = false
+  _dragStartX = e.clientX
+  _dragging   = false
 
   window.addEventListener('mousemove', onMouseMove)
   window.addEventListener('mouseup',   onMouseUp)
